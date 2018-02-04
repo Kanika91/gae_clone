@@ -102,7 +102,7 @@ def load_data_pkl(dataset):
     assert ~ismember(val_edges_false, edges_all)
     assert ~ismember(val_edges, np.array(train_edges))
     assert ~ismember(test_edges, np.array(train_edges))
-    assert ~ismember(val_edges, test_edges)
+    assert ~ismember(val_edges, np.array(test_edges))
 
     #print('length ',len(edgelist),len(user_graph),len(traindata))
     edgelist = user_graph #Add user graph
