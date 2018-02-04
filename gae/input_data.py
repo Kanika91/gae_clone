@@ -16,15 +16,15 @@ def ismember(a, b, tol=5):
             np.all(np.any(rows_close, axis=0), axis=0))
 
 def load_data_pkl(dataset):
-    with open ('../../PACE2017/data/traindata_small.pkl' , 'rb' ) as f:
+    with open ('gowalla/traindata_small.pkl' , 'rb' ) as f:
         pkl_data = pkl.load(f)
         traindata = pkl_data['graph']
 
-    with open ('../../PACE2017/data/testdata_small.pkl' , 'rb' ) as f:
+    with open ('gowalla/testdata_small.pkl' , 'rb' ) as f:
         pkl_data = pkl.load(f)
         testdata = pkl_data['graph']
 
-    with open ('../../PACE2017/data/inter_small.pkl' , 'rb' ) as f:
+    with open ('gowalla/inter_small.pkl' , 'rb' ) as f:
         pkl_data = pkl.load(f)
         user_enum = pkl_data['user_enum']
         spot_enum = pkl_data['spot_enum']
