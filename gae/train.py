@@ -14,10 +14,10 @@ import scipy.sparse as sp
 from sklearn.metrics import roc_auc_score
 from sklearn.metrics import average_precision_score
 
-from gae.optimizer import OptimizerAE, OptimizerVAE
-from gae.input_data import load_data
-from gae.model import GCNModelAE, GCNModelVAE
-from gae.preprocessing import preprocess_graph, construct_feed_dict, sparse_to_tuple, mask_test_edges
+from optimizer import OptimizerAE, OptimizerVAE
+from input_data import load_data, load_data_pkl
+from model import GCNModelAE, GCNModelVAE
+from preprocessing import preprocess_graph, construct_feed_dict, sparse_to_tuple, mask_test_edges
 
 # Settings
 flags = tf.app.flags
@@ -36,15 +36,26 @@ flags.DEFINE_integer('features', 1, 'Whether to use features (1) or not (0).')
 model_str = FLAGS.model
 dataset_str = FLAGS.dataset
 
-# Load data
-adj, features = load_data(dataset_str)
+#Load training and testing dataset
+if dataset_str == 'gowalla':
+    adj, adj_train, train_edges, val_edges, val_edges_false, test_edges, test_edges_false, features =  load_data_pkl(dataset_str)
+    # Store original adjacency matrix (without diagonal entries) for later
+    adj_orig = adj
+    adj_orig = adj_orig - sp.dia_matrix((adj_orig.diagonal()[np.newaxis, :], [0]), shape=adj_orig.shape)
+    adj_orig.eliminate_zeros()
 
-# Store original adjacency matrix (without diagonal entries) for later
-adj_orig = adj
-adj_orig = adj_orig - sp.dia_matrix((adj_orig.diagonal()[np.newaxis, :], [0]), shape=adj_orig.shape)
-adj_orig.eliminate_zeros()
+else:
+    # Load data
+    adj, features = load_data(dataset_str)
+    print("Loaded dataset")
+    # Store original adjacency matrix (without diagonal entries) for later
+    adj_orig = adj
+    adj_orig = adj_orig - sp.dia_matrix((adj_orig.diagonal()[np.newaxis, :], [0]), shape=adj_orig.shape)
+    adj_orig.eliminate_zeros()
 
-adj_train, train_edges, val_edges, val_edges_false, test_edges, test_edges_false = mask_test_edges(adj)
+
+    adj_train, train_edges, val_edges, val_edges_false, test_edges, test_edges_false = mask_test_edges(adj)
+
 adj = adj_train
 
 if FLAGS.features == 0:
