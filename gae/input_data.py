@@ -111,9 +111,9 @@ def load_data_pkl(dataset):
     edgelist = train_edges + edgelist
     train_edges = edgelist
 
-    data = np.ones(train_edges.shape[0])
-    adj_train = sp.csr_matrix((data, (train_edges[:, 0], train_edges[:, 1])), shape=(index,index)))
-    data = np.ones(edges_all.shape[0])
+    data = np.ones(len(train_edges))
+    adj_train = sp.csr_matrix((data, (train_edges[:, 0], train_edges[:, 1])), shape=(index,index))
+    data = np.ones(len(edges_all))
     adj = sp.csr_matrix((data, (edges_all[:, 0], edges_all[:, 1])), shape=(index,index))
 
     #adj_train = nx.adjacency_matrix(nx.from_edgelist(edgelist))
