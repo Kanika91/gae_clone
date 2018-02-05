@@ -98,23 +98,28 @@ def load_data_pkl(dataset):
         test_edges_false.append([idx_j+user_count, idx_i])
 
     print("Length of different edges ",len(train_edges), len(val_edges), len(val_edges_false), len(test_edges), len(test_edges_false))
-    assert ~ismember(test_edges_false, edges_all)
-    assert ~ismember(val_edges_false, edges_all)
-    assert ~ismember(val_edges, np.array(train_edges))
-    assert ~ismember(test_edges, np.array(train_edges))
-    assert ~ismember(val_edges, np.array(test_edges))
+    # assert ~ismember(test_edges_false, edges_all)
+    # assert ~ismember(val_edges_false, edges_all)
+    # assert ~ismember(val_edges, np.array(train_edges))
+    # assert ~ismember(test_edges, np.array(train_edges))
+    # assert ~ismember(val_edges, np.array(test_edges))
 
     #print('length ',len(edgelist),len(user_graph),len(traindata))
     edgelist = user_graph #Add user graph
     edgelist = edgelist + [(x+user_count,y+user_count) for (x,y) in spot_graph] #Add item graph
     edgelist = edgelist + [(y,x) for (x,y) in edgelist]
     edgelist = train_edges + edgelist
-
     train_edges = edgelist
-    adj_train = nx.adjacency_matrix(nx.from_edgelist(edgelist))
-    adj = nx.adjacency_matrix(nx.from_edgelist(edges_all))
+
+    data = np.ones(train_edges.shape[0])
+    adj_train = sp.csr_matrix((data, (train_edges[:, 0], train_edges[:, 1])), shape=(index,index)))
+    data = np.ones(edges_all.shape[0])
+    adj = sp.csr_matrix((data, (edges_all[:, 0], edges_all[:, 1])), shape=(index,index))
+
+    #adj_train = nx.adjacency_matrix(nx.from_edgelist(edgelist))
+    #adj = nx.adjacency_matrix(nx.from_edgelist(edges_all))
     print(adj[70,91],adj[91,70])
-    print("adjacency matrix shape ", adj.shape[0], adj.shape[1])
+    print("adjacency matrix shape ", adj.shape[0], adj.shape[1], adj_train.shape[0], adj_train.shape[1])
 
     #return adj,np.zeros((adj.shape[0],adj.shape[0]))
     return adj, adj_train, train_edges, val_edges, val_edges_false, test_edges, test_edges_false, np.zeros((adj.shape[0],adj.shape[0]))
