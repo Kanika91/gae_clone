@@ -43,6 +43,7 @@ def load_data_pkl(dataset):
 
         testdata = []
         user_enum = set()
+
         with open("../../baselines/neural_collaborative_filtering/Data/ml-1m.test.rating",'r') as f:
             for line in f:
                 user, item, rating, timestamp = line.strip().split("\t")

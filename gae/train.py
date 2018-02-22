@@ -37,7 +37,7 @@ model_str = FLAGS.model
 dataset_str = FLAGS.dataset
 
 #Load training and testing dataset
-if dataset_str == 'gowalla':
+if dataset_str == 'gowalla' or dataset_str == 'movielens':
     adj, adj_train, train_edges, val_edges, val_edges_false, test_edges, test_edges_false, features =  load_data_pkl(dataset_str)
     # Store original adjacency matrix (without diagonal entries) for later
     adj_orig = adj
@@ -111,6 +111,51 @@ sess.run(tf.global_variables_initializer())
 cost_val = []
 acc_val = []
 
+def getHitRatio(ranklist, gtItem):
+    for item in ranklist:
+        if item == gtItem:
+            return 1
+    return 0
+
+def getNDCG(ranklist, gtItem):
+    for i in xrange(len(ranklist)):
+        item = ranklist[i]
+        if item == gtItem:
+            return math.log(2) / math.log(i+2)
+    return 0
+
+def get_hit_ndcg_score_perlist(predictions, K, gtitem):
+    map_item_score = {}
+    for i in xrange(len(predictions)):
+        map_item_score[i] = predictions[i]
+
+
+    # Evaluate top rank list
+    ranklist = heapq.nlargest(K, map_item_score, key=map_item_score.__getitem__)
+    hr = getHitRatio(ranklist, gtItem)
+    ndcg = getNDCG(ranklist, gtItem)
+    return (hr, ndcg)
+
+
+def get_hit_ndcg_score(edges_pos):
+    feed_dict.update({placeholders['dropout']: 0})
+    emb = sess.run(model.z_mean, feed_dict=feed_dict)
+
+    def sigmoid(x):
+        return 1 / (1 + np.exp(-x))
+
+    # Predict on test set of edges
+    adj_rec = np.dot(emb, emb.T)
+    hit = []
+    ndcg = []
+    for e in edges_pos:
+        list_ = sigmoid(adj_rec[e[0], e[1]])
+        h, r = get_hit_ndcg_score_perlist(list_, 10, e[1])
+        hit.append(h)
+        ndcg.append(r)
+
+    print( "HIT, NDCG score ",np.mean(hit), np.mean(ndcg))
+
 
 def get_roc_score(edges_pos, edges_neg, emb=None):
     if emb is None:
@@ -136,6 +181,7 @@ def get_roc_score(edges_pos, edges_neg, emb=None):
 
     preds_all = np.hstack([preds, preds_neg])
     labels_all = np.hstack([np.ones(len(preds)), np.zeros(len(preds))])
+    print("SHapes ",len(labels_all),len(preds_all), len(preds), len(preds_neg))
     roc_score = roc_auc_score(labels_all, preds_all)
     ap_score = average_precision_score(labels_all, preds_all)
 
@@ -176,3 +222,5 @@ print("Optimization Finished!")
 roc_score, ap_score = get_roc_score(test_edges, test_edges_false)
 print('Test ROC score: ' + str(roc_score))
 print('Test AP score: ' + str(ap_score))
+
+get_hit_ndcg_score(test_edges)
