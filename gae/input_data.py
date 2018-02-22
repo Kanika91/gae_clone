@@ -16,20 +16,41 @@ def ismember(a, b, tol=5):
             np.all(np.any(rows_close, axis=0), axis=0))
 
 def load_data_pkl(dataset):
-    with open ('gowalla/traindata_small.pkl' , 'rb' ) as f:
-        pkl_data = pkl.load(f)
-        traindata = pkl_data['graph']
+    if dataset == "gowalla":
+        with open ('gowalla/traindata_small.pkl' , 'rb' ) as f:
+            pkl_data = pkl.load(f)
+            traindata = pkl_data['graph']
 
-    with open ('gowalla/testdata_small.pkl' , 'rb' ) as f:
-        pkl_data = pkl.load(f)
-        testdata = pkl_data['graph']
+        with open ('gowalla/testdata_small.pkl' , 'rb' ) as f:
+            pkl_data = pkl.load(f)
+            testdata = pkl_data['graph']
 
-    with open ('gowalla/inter_small.pkl' , 'rb' ) as f:
-        pkl_data = pkl.load(f)
-        user_enum = pkl_data['user_enum']
-        spot_enum = pkl_data['spot_enum']
-        user_graph = pkl_data['user_graph']
-        spot_graph = pkl_data['spot_graph']
+        with open ('gowalla/inter_small.pkl' , 'rb' ) as f:
+            pkl_data = pkl.load(f)
+            user_enum = pkl_data['user_enum']
+            spot_enum = pkl_data['spot_enum']
+            user_graph = pkl_data['user_graph']
+            spot_graph = pkl_data['spot_graph']
+
+    elif dataset == "movielens":
+        traindata = []
+        spot_enum = set()
+        with open("../../neural_collaborative_filtering/Data/ml-1m.train.rating",'r') as f:
+            for line in f:
+                user, item, rating, timestamp = line.strip().split("\t")
+                traindata.append((int(user),int(item)))
+                spot_enum.add(int(item))
+
+        testdata = []
+        user_enum = set()
+        with open("../../neural_collaborative_filtering/Data/ml-1m.test.rating",'r') as f:
+            for line in f:
+                user, item, rating, timestamp = line.strip().split("\t")
+                testdata.append((int(user),int(item)))
+                user_enum.add(int(user))
+                spot_enum.add(int(item))
+        user_graph = []
+        spot_graph = []
 
     #Create adjacency matrix
     print("User count ",len(user_enum))
@@ -112,9 +133,11 @@ def load_data_pkl(dataset):
     train_edges = edgelist
 
     data = np.ones(len(train_edges))
-    adj_train = sp.csr_matrix((data, (train_edges[:, 0], train_edges[:, 1])), shape=(index,index))
+    train_edges_arr = np.array(train_edges)
+    adj_train = sp.csr_matrix((data, (train_edges_arr[:, 0], train_edges_arr[:, 1])), shape=(index,index))
     data = np.ones(len(edges_all))
-    adj = sp.csr_matrix((data, (edges_all[:, 0], edges_all[:, 1])), shape=(index,index))
+    edges_all_arr = np.array(edges_all)
+    adj = sp.csr_matrix((data, (edges_all_arr[:, 0], edges_all_arr[:, 1])), shape=(index,index))
 
     #adj_train = nx.adjacency_matrix(nx.from_edgelist(edgelist))
     #adj = nx.adjacency_matrix(nx.from_edgelist(edges_all))
@@ -122,11 +145,13 @@ def load_data_pkl(dataset):
     print("adjacency matrix shape ", adj.shape[0], adj.shape[1], adj_train.shape[0], adj_train.shape[1])
 
     #return adj,np.zeros((adj.shape[0],adj.shape[0]))
+    #val_edges_false = []
+    #test_edges_false = []
     return adj, adj_train, train_edges, val_edges, val_edges_false, test_edges, test_edges_false, np.zeros((adj.shape[0],adj.shape[0]))
 
 def load_data(dataset):
 
-    if dataset == 'gowalla':
+    if dataset == 'gowalla' or dataset == 'movielens':
         return load_data_pkl(dataset)
 
     # load the data: x, tx, allx, graph
